@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <title>Mi rincón peludito</title>
+</head>
+<body>
+    <header class="header header-with-image">
+        <img src="logo.jpg"
+             alt="imagen principal"
+             class="header-image">
+
+        <div class="header-content container">
+            <nav class="navigation">
+                <a href="/">
+                    <p class="logotipo">Mi rincón <span>peludito</span></p>
+                </a>
+
+                <!-- Contenedor para el botón de carrito -->
+                <div class="nav-buttons">
+                    <!-- Botón de Carrito -->
+                    <div class="nav-btn cart-btn" id="cartButton">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span class="cart-count">0</span>
+
+                        <!-- Dropdown del carrito (corregido) -->
+                        <div class="cart-dropdown" id="cartDropdown">
+                            <div class="cart-content">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Imagen</th>
+                                            <th>Descripción</th>
+                                            <th>Precio</th>
+                                            <th>Cantidad</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="contentProducts">
+                                        <!-- Contenido del carrito se carga aquí dinámicamente -->
+                                    </tbody>
+
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="5" class="total">
+                                                <h4 class="heading-total">Total: <span id="total">$0</span></h4>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="5">
+                                                <button type="button" id="emptyCart">Vaciar Carrito</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="5">
+                                                <button type="button" id="checkoutButton" class="btn-service" style="margin-top: 1rem;">Proceder al Pedido</button>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- El resto del contenido permanece igual -->
+    <section class="banner">
+        <div class="banner-grid container">
+            <div class="banner-item">
+                <i class="fa-solid fa-paw icon-banner"></i>
+                <h3>Todo para el bienestar de tu mascota</h3>
+            </div>
+            <div class="banner-item">
+                <i class="fa-solid fa-truck-fast icon-banner"></i>
+                <h3>Envíos rápidos y seguros para tu peludito</h3>
+            </div>
+            <div class="banner-item">
+                <i class="fa-solid fa-heart icon-banner"></i>
+                <h3>Productos de calidad para el amor que merecen</h3>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Juguetes Caninos -->
+    <section class="products" id="juguetes-caninos">
+        <h2>🐕 Juguetes Caninos - Perri Promociones</h2>
+        <div id="juguetes-caninos-container" class="products-grid container">
+            <!-- Los productos se cargarán aquí dinámicamente -->
+            <div class="loading">Cargando productos...</div>
+        </div>
+    </section>
+
+    <!-- Sección de Juguetes Gatunos -->
+    <section class="products" id="juguetes-gatunos" style="background-color: #fff5e6;">
+        <h2>🐱 Juguetes Gatunos - Michi Promociones</h2>
+        <div id="juguetes-gatunos-container" class="products-grid container">
+            <!-- Los productos se cargarán aquí dinámicamente -->
+            <div class="loading">Cargando productos...</div>
+        </div>
+    </section>
+
+    <!-- Sección de Accesorios -->
+    <section class="products" id="accesorios">
+        <h2>🎀 Accesorios para Mascotas</h2>
+        <div id="accesorios-container" class="products-grid container">
+            <!-- Los productos se cargarán aquí dinámicamente -->
+            <div class="loading">Cargando productos...</div>
+        </div>
+    </section>
+
+    <!-- Sección de Peluquería Canina -->
+    <section class="products" id="peluqueria-canina">
+        <h2>✂️ Peluquería Canina - Servicios Profesionales</h2>
+        <div class="grooming-content container">
+            <div class="service-card grooming-text-content">
+                <i class="fa-solid fa-scissors service-icon"></i>
+                <h3>Peluquería Canina a Domicilio</h3>
+                <p>Baño y corte, corte de uñas, despejes sanitario y limpieza de oídos.</p>
+                <div class="service-price">$17990</div>
+                <button type="button" class="btn-service" data-service="Peluquería Canina a Domicilio" data-price="17990.00">Reservar Ahora</button>
+            </div>
+            
+            <div class="grooming-image-container">
+                <img src="peluqueria 1.jpg" alt="Peluquería Canina" class="grooming-image">
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Noticias y Eventos -->
+    <section class="products" id="noticias-eventos" style="background-color: #f8f9fa;">
+        <h2>📅 Noticias y Eventos</h2>
+        <div class="news-event-content container">
+            <div class="news-card news-text-content">
+                <i class="fa-solid fa-map-marker-alt news-icon"></i>
+                <div class="news-date">¡Encuéntranos en la Feria!</div>
+                <h3>Nuestra Ubicación</h3>
+                <p>Estaremos en la feria en Av. Italia 1213, 7501295 Providencia, Región Metropolitana, Chile. ¡Te esperamos con muchas sorpresas para tu mascota!</p>
+                <a href="https://maps.app.goo.gl/your-google-maps-link-here" target="_blank" class="btn-service">Ver en Mapa</a>
+            </div>
+            
+            <div class="news-map-container">
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3329.137509546233!2d-70.62797192513287!3d-33.44572379726869!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9662c57eed23ae99%3A0xaa7e6660935bf905!2sAv.%20Italia%201213%2C%207501295%20Providencia%2C%20Regi%C3%B3n%20Metropolitana%2C%20Chile!5e0!3m2!1ses!2sve!4v1758236429199!5m2!1ses!2sve" 
+                    width="100%" 
+                    height="500" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Visión -->
+    <section class="products" id="vision">
+        <h2>👁️ Nuestra Visión</h2>
+        <div class="products-grid container">
+            <div class="info-card">
+                <i class="fa-solid fa-eye info-icon"></i>
+                <h3>Visión General</h3>
+                <p>Ser el referente líder en bienestar animal, creando una comunidad donde cada mascota reciba el amor, cuidado y productos de calidad que merece.</p>
+            </div>
+
+            <div class="info-card">
+                <i class="fa-solid fa-hand-holding-heart info-icon"></i>
+                <h3>Compromiso Social</h3>
+                <p>Promover la tenencia responsable de mascotas y apoyar iniciativas de rescate y adopción en nuestra comunidad.</p>
+            </div>
+
+            <div class="info-card">
+                <i class="fa-solid fa-seedling info-icon"></i>
+                <h3>Sostenibilidad</h3>
+                <p>Implementar prácticas eco-amigables y ofrecer productos sustentables que cuiden del planeta que compartimos.</p>
+            </div>
+
+            <div class="info-card">
+                <i class="fa-solid fa-people-group info-icon"></i>
+                <h3>Comunidad</h3>
+                <p>Crear un espacio de encuentro donde dueños de mascotas compartan experiencias y aprendan juntos.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Objetivo -->
+    <section class="products" id="objetivo" style="background-color: #fff5e6;">
+        <h2>🎯 Nuestro Objetivo</h2>
+        <div class="products-grid container">
+            <div class="info-card">
+                <i class="fa-solid fa-star info-icon"></i>
+                <h3>Calidad Premium</h3>
+                <p>Ofrecer productos y servicios de la más alta calidad que superen las expectativas de nuestros clients peludos y sus dueños.</p>
+            </div>
+
+            <div class="info-card">
+                <i class="fa-solid fa-shield-heart info-icon"></i>
+                <h3>Bienestar Integral</h3>
+                <p>Proveer soluciones completas para la salud, nutrición y felicidad de las mascotas en todas las etapas de sua vida.</p>
+            </div>
+
+            <div class="info-card">
+                <i class="fa-solid fa-graduation-cap info-icon"></i>
+                <h3>Education Continua</h3>
+                <p>Capacitar constantemente a nuestro equipo y educar a la comunidad sobre el cuidado responsable de mascotas.</p>
+            </div>
+
+            <div class="info-card">
+                <i class="fa-solid fa-handshake-angle info-icon"></i>
+                <h3>Servicio Personalizado</h3>
+                <p>Brindar atención individualizada entendiendo las necesidades únicas de cada mascota y su familia.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>©2025 Mi rincón peludito. Todos los derechos reservados</p>
+        </div>
+    </footer>
+
+    <!-- Nuevo Modal de Pedido/Contacto -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Confirmar Pedido y Contacto</h2>
+            <form id="orderForm">
+                <p style="margin-bottom: 2rem; text-align: center; color: #666;">
+                    Por favor, introduce tus datos para que el vendedor pueda contactarte y coordinar el pago y la entrega.
+                </p>
+                <div class="form-group">
+                    <label for="customerName">Nombre Completa:</label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerEmail">Correo Electrónico:</label>
+                    <input type="email" id="customerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerPhone">Número de Teléfono:</label>
+                    <input type="tel" id="customerPhone" pattern="[0-9]{10}" placeholder="Ej: 1234567890" required>
+                    <small>Formato: 10 dígitos numéricos</small>
+                </div>
+                <div class="form-group">
+                    <label for="paymentMethod">Método de Pago Preferido:</label>
+                    <select id="paymentMethod" required>
+                        <option value="">Seleccione un método</option>
+                        <option value="transferencia">Transferencia Bancaria</option>
+                        <option value="efectivo">Efectivo al Recibir</option>
+                        <option value="otro">Otro (especificar en notas)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="orderNotes">Notas Adicionales:</label>
+                    <textarea id="orderNotes" rows="3" placeholder="Dirección de entrega, instrucciones especiales, etc."></textarea>
+                </div>
+                <div class="form-group">
+                    <h3>Resumen del Pedido:</h3>
+                    <div id="orderSummary" style="border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; border-radius: 5px;">
+                        <!-- Aquí se mostrará el resumen del pedido -->
+                    </div>
+                </div>
+                <button type="submit" class="btn-service">Confirmar Pedido</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script colocado en la posición correcta -->
+    <script src="app.js"></script>
+</body>
+</html>

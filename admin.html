@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+    <title>Administrador - Mi rincón peludito</title>
+</head>
+<body>
+    <!-- Modal para editar pedido (simplificado, se creará dinámicamente) -->
+    <div id="orderModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <!-- El contenido se cargará dinámicamente con JavaScript -->
+        </div>
+    </div>
+
+    <header class="admin-header">
+        <div class="container">
+            <h1>Panel de Administración</h1>
+            <p>Gestión de Productos y Pedidos de Mi rincón peludito</p>
+            <nav class="navigation">
+                <a href="index.html" class="back-to-store">Volver a la Tienda</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Pestañas de navegación -->
+        <div class="admin-tabs container">
+            <button class="tab-btn active" data-tab="products">Gestión de Productos</button>
+            <button class="tab-btn" data-tab="orders">Gestión de Pedidos</button>
+        </div>
+
+        <!-- Sección de Productos -->
+        <section class="admin-section tab-content active" id="products-tab">
+            <div class="container">
+                <h2>Gestión de Productos</h2>
+
+                <div class="admin-form-container" id="productFormContainer" style="display: none;">
+                    <h3><span id="formTitle">Crear Nuevo Producto</span></h3>
+                    <form id="productForm">
+                        <input type="hidden" id="productId">
+
+                        <div class="form-group">
+                            <label for="productName">Nombre del Producto:</label>
+                            <input type="text" id="productName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="productDescription">Descripción:</label>
+                            <textarea id="productDescription" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="productOldPrice">Precio Anterior ($):</label>
+                            <input type="number" id="productOldPrice" step="0.01"> <!-- No es requerido -->
+                        </div>
+
+                        <div class="form-group">
+                            <label for="productCurrentPrice">Precio Actual ($):</label>
+                            <input type="number" id="productCurrentPrice" step="0.01" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="productImage">URL de la Imagen:</label>
+                            <input type="text" id="productImage"> <!-- No es requerido -->
+                        </div>
+
+                        <div class="form-group">
+                            <label for="productStars">Estrellas (1-5):</label>
+                            <input type="number" id="productStars" min="0" max="5" step="0.5"> <!-- No es requerido -->
+                        </div>
+
+                        <div class="form-group">
+                            <label for="productQuantity">Cantidad Disponible:</label>
+                            <input type="number" id="productQuantity" min="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="productCategory">Categoría:</label>
+                            <select id="productCategory" required>
+                                <option value="">Selecciona una categoría</option>
+                                <option value="canino">Juguete Canino</option>
+                                <option value="gatuno">Juguete Gatuno</option>
+                                <option value="accesorio">Accesorio</option>
+                            </select>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" id="saveProductBtn" class="btn-primary">Guardar Producto</button>
+                            <button type="button" id="cancelEditBtn" class="btn-secondary">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="add-product-btn-container">
+                    <button id="showAddProductFormBtn" class="btn-primary">Añadir Nuevo Producto</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="product-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Imagen</th>
+                                <th>Nombre</th>
+                                <th>Precio Actual</th>
+                                <th>Cantidad</th>
+                                <th>Categoría</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminProductList">
+                            <!-- Los productos se cargarán aquí dinámicamente -->
+                            <tr>
+                                <td colspan="7" style="text-align: center;">Cargando productos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de Pedidos -->
+        <section class="admin-section tab-content" id="orders-tab">
+            <div class="container">
+                <h2>Gestión de Pedidos</h2>
+
+                <!-- Filtros de pedidos -->
+                <div class="order-filters">
+                    <select id="orderStatusFilter">
+                        <option value="all">Todos los pedidos</option>
+                        <option value="pendiente">Pendientes de pago</option>
+                        <option value="pagado">Pagados</option>
+                    </select>
+                    <button id="applyFilterBtn" class="btn-primary">Aplicar Filtro</button>
+                </div>
+
+                <div id="ordersContainer">
+                    <!-- Los pedidos se cargarán aquí dinámicamente -->
+                    <p>Cargando pedidos...</p>
+                </div>
+
+                <div id="loadMoreContainer" style="text-align: center; margin-top: 2rem; display: none;">
+                    <button id="loadMoreOrdersBtn" class="btn-primary">Cargar más pedidos</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>©2024 Mi rincón peludito. Panel de Administración.</p>
+        </div>
+    </footer>
+
+    <script src="admin.js"></script>
+</body>
+</html>

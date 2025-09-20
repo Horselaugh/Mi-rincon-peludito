@@ -1,0 +1,781 @@
+/* Usar Google Fonts en lugar de fuentes locales */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,200;0,300;0,700;1,400&display=swap');
+
+/* Reset Básico y Box-Sizing */
+*, *:after, *:before {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+html {
+    box-sizing: inherit;
+    font-size: 62.5%;
+}
+
+body {
+    font-size: 1.6rem;
+    color: #6b7280;
+    line-height: 1.4;
+    font-family: "Poppins", sans-serif;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+/* Selector :is() reemplazado para mejor compatibilidad */
+h1, h2, h3, h4 {
+    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+}
+
+.container {
+    width: min(95%, 128rem);
+    margin: 0 auto;
+}
+
+/* Estilos del Header con Imagen de Fondo */
+.header-with-image {
+    position: relative;
+    background: linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.7) 100%);
+    overflow: hidden;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.header-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+    opacity: 0.8;
+}
+
+.header-content {
+    position: relative;
+    z-index: 2;
+    padding-bottom: 5rem;
+}
+
+/* Estilos para tarjetas de servicio, noticias e información */
+.service-card, .news-card, .info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 0 2rem rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.service-card:hover, .news-card:hover, .info-card:hover {
+    transform: translateY(-5px);
+}
+
+.service-icon, .news-icon, .info-icon {
+    font-size: 3rem;
+    color: #FFA500;
+    margin-bottom: 1rem;
+}
+
+.service-card h3, .news-card h3, .info-card h3 {
+    color: #404040;
+    margin-bottom: 1rem;
+}
+
+.service-card p, .news-card p, .info-card p {
+    color: #666;
+    line-height: 1.6;
+    flex-grow: 1;
+    margin-bottom: 1rem;
+}
+
+.service-price {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #FF8C00;
+    margin: 1rem 0;
+}
+
+.news-date {
+    color: #FFA500;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.btn-service {
+    background: #FFA500;
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    margin-top: auto;
+    transition: background 0.3s ease;
+    width: 100%;
+}
+
+.btn-service:hover {
+    background: #FF8C00;
+}
+
+@media (max-width: 768px) {
+    .header-image {
+        object-position: center 30%;
+    }
+}
+
+/* Navegación Principal */
+.navigation {
+    padding: 3rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logotipo {
+    font-size: 4rem;
+    color: white;
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+}
+
+.logotipo span {
+    font-weight: 200;
+    color: #FFA500;
+    font-size: 4rem;
+}
+
+/* Contenedor de botones de navegación */
+.nav-buttons {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.nav-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    line-height: 1;
+}
+
+.nav-btn i {
+    font-size: 2.6rem;
+    color: #FFA500;
+    transition: color 0.3s ease;
+}
+
+.nav-btn:hover i {
+    color: #ff8c00;
+}
+
+.cart-btn {
+    position: relative;
+}
+
+.cart-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff4444;
+    color: white;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* Dropdown del carrito */
+.cart-dropdown {
+    display: none;
+    position: absolute;
+    opacity: 0;
+    right: 0;
+    top: 60px;
+    background-color: rgba(0,0,0,0.85);
+    backdrop-filter: blur(5px);
+    padding: 2rem;
+    border-radius: .8rem;
+    z-index: 10;
+    min-width: 350px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(10px);
+}
+
+.cart-btn:hover .cart-dropdown {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.cart-content table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.cart-content thead th {
+    padding: 1rem;
+    color: #f7f8f9;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+    font-size: 1.2rem;
+}
+
+.cart-content tbody td {
+    color: #f7f8f9;
+    padding: 1rem;
+    vertical-align: middle;
+    font-size: 1.4rem;
+}
+
+.cart-content tbody td img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: .5rem;
+}
+
+.cart-content tbody td input[type="number"] {
+    width: 50px;
+    background-color: transparent;
+    border: 1px solid #ddd;
+    padding: .5rem;
+    color: #f7f8f9;
+    border-radius: .3rem;
+    text-align: center;
+}
+
+.cart-content tbody td button {
+    border: none;
+    width: 30px;
+    height: 30px;
+    background-color: #dc2626;
+    color: #f7f8f9;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.cart-content tfoot .total {
+    text-align: right;
+    padding: 1rem 0;
+    border-top: 1px solid #ddd;
+}
+
+.cart-content tfoot .heading-total {
+    color: white;
+    margin: 0;
+    font-size: 1.6rem;
+}
+
+.cart-content tfoot td button {
+    width: 100%;
+    background-color: #FFA500;
+    padding: 1rem;
+    border: none;
+    border-radius: .5rem;
+    cursor: pointer;
+    color: white;
+    font-weight: 700;
+    margin-top: 1rem;
+}
+
+.alert {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px 45px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    font-size: 2rem;
+    text-align: center;
+    z-index: 1000;
+    opacity: 0;
+    animation: fadeInOut 5s ease forwards;
+}
+
+.alert.error {
+    background-color: #f44336;
+    color: #fff;
+} 
+
+.alert.success {
+    background-color: #FFA500;
+    color: #fff;
+}
+
+/* Estilos para el formulario de búsqueda del header */
+.form-header {
+    width: min(95%, 60rem);
+    margin: 0 auto;
+    padding: 10rem 0 15rem 0;
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.form-header input {
+    width: 100%;
+    padding: 1rem;
+    background-color: rgba(255, 255, 255, .10);
+    backdrop-filter: blur(10px);
+    border-top-left-radius: .5rem;
+    border-bottom-left-radius: .5rem;
+    border: 1px solid white;
+    color: white;
+    font-size: 1.6rem;
+}
+
+.form-header input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.form-header input:focus,
+.form-header input:active {
+    outline: none;
+    border-color: #FFA500;
+}
+
+.form-header button {
+    background-color: #FFA500;
+    padding: .8rem;
+    border: 1px solid white;
+    border-left: none;
+    border-top-right-radius: .5rem;
+    border-bottom-right-radius: .5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+.form-header button:hover {
+    background-color: #FF8C00;
+}
+
+.form-header .fa-magnifying-glass {
+    font-size: 2.2rem;
+    color: #404040;
+}
+
+/* Banner de características */
+.banner {
+    background: linear-gradient(to right, #FF8C00 0%, #FFA500 100%);
+    padding: 4rem 0;
+}
+
+.banner-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 8rem;
+}
+
+@media (min-width: 992px) {
+    .banner-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.banner-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3rem;
+}
+
+.banner-item .icon-banner {
+    font-size: 3rem;
+}
+
+.banner-item h3 {
+    text-align: center;
+    color: #404040;
+    font-weight: 400;
+    margin: 0;
+}
+
+/* Secciones de Productos y Servicios */
+.products {
+    padding: 8rem 0;
+    background-color: #f8fafc;
+}
+
+.products h2 {
+    text-align: center;
+    font-size: clamp(3.8rem, 8vw, 4.6rem);
+    color: #404040;
+    margin-bottom: 5rem;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 2rem;
+}
+
+@media (min-width: 576px) {
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 768px) {
+    .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1280px) {
+    .products-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.product {
+    box-shadow: 0 0 2.5rem rgba(0,0,0,.10);
+    border-radius: .7rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.product img {
+    height: 200px;
+    object-fit: cover;
+}
+
+.product-info {
+    padding: 1.5rem;
+    background-color: white;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.product-info h4 {
+    color: #404040;
+    margin-bottom: 0.5rem;
+}
+
+.product-info .product-text {
+    margin: 1.2rem 0;
+    flex-grow: 1;
+}
+
+.product-info .icon-star {
+    color: #fbbf24;
+    font-size: 1.2rem;
+}
+
+.product-info .price {
+    margin: 1.2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.product-info .price span {
+    text-decoration: line-through;
+    color: #9ca3af;
+}
+
+.product-info .price p {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #404040;
+    margin: 0;
+}
+
+.product-info .btn-add {
+    border: none;
+    background-color: #FFA500;
+    width: 100%;
+    padding: 1rem;
+    border-radius: .5rem;
+    color: #404040;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-top: 1.5rem;
+    cursor: pointer;
+    transition: background-color .3s ease;
+}
+
+.product-info .btn-add:hover {
+    background-color: #FF8C00;
+}
+
+/* Footer */
+.footer {
+    background-color: #404040;
+    padding: 2.5rem 0;
+    text-align: center;
+}
+
+.footer p {
+    color: white;
+    margin: 0;
+}
+
+.footer a {
+    color: white;
+    text-decoration: underline;
+    margin-left: 0.5rem;
+}
+
+/* Animación de Alerta */
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    10% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    90% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+}
+
+@media (min-width: 1400px) {
+    .cart-dropdown {
+        right: -20rem;
+    }
+}
+
+/* Responsive para la navegación */
+@media (max-width: 768px) {
+    .navigation {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.5rem 0;
+    }
+    
+    .logotipo {
+        font-size: 3rem;
+    }
+    
+    .logotipo span {
+        font-size: 3rem;
+    }
+    
+    .nav-buttons {
+        gap: 1rem;
+    }
+    
+    .nav-btn {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .nav-btn i {
+        font-size: 2.2rem;
+    }
+    
+    .cart-dropdown {
+        width: 300px;
+        right: -50px;
+    }
+
+    .form-header {
+        padding: 5rem 0 10rem 0;
+    }
+}
+
+/* Estilos para el Modal de Pago */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+    backdrop-filter: blur(3px);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 3rem;
+    border-radius: 1rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+}
+
+.modal-content h2 {
+    text-align: center;
+    color: #404040;
+    margin-bottom: 2rem;
+    font-size: 2.8rem;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 3.5rem;
+    font-weight: bold;
+    position: absolute;
+    top: 1rem;
+    right: 2rem;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #333;
+    text-decoration: none;
+}
+
+.form-group {
+    margin-bottom: 2rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #404040;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 1.2rem;
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+    font-size: 1.6rem;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #FFA500;
+}
+
+.btn-pay {
+    background-color: #FFA500;
+    color: white;
+    border: none;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    width: 100%;
+    font-size: 1.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 1rem;
+}
+
+.btn-pay:hover {
+    background-color: #FF8C00;
+}
+
+/* Responsive para el modal */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        padding: 2rem;
+    }
+    
+    .modal-content h2 {
+        font-size: 2.4rem;
+    }
+    
+    .close-button {
+        font-size: 3rem;
+        top: 0.5rem;
+        right: 1rem;
+    }
+}
+
+/* Estilos para el contenedor de imágenes de peluquería */
+.grooming-images-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    max-width: 100%;
+}
+
+.grooming-image {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 1rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.grooming-image:hover {
+    transform: scale(1.02);
+}
+
+/* Responsive para pantallas más pequeñas */
+@media (max-width: 768px) {
+    .grooming-images-wrapper {
+        grid-template-columns: 1fr;
+    }
+    
+    .grooming-image {
+        height: 250px;
+    }
+}
+
+/* Ajustes para la sección de peluquería */
+.grooming-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+@media (max-width: 992px) {
+    .grooming-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+}
