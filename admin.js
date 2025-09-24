@@ -840,3 +840,23 @@ function addOrderActionListeners() {
     }
 });
 
+// Al inicio de admin.js o en un script en admin.html
+const ADMIN_PASSWORD = "tu-contraseña-segura"; // Cambia esto
+
+function checkAdminAccess() {
+    const password = prompt("Ingrese la contraseña de administrador:");
+    if (password !== ADMIN_PASSWORD) {
+        alert("Acceso denegado");
+        window.location.href = "/";
+        return false;
+    }
+    return true;
+}
+
+// Llamar esta función cuando se cargue admin.html
+document.addEventListener('DOMContentLoaded', function() {
+    if (!checkAdminAccess()) {
+        return;
+    }
+    // Continuar con la carga normal del panel
+});
