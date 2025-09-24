@@ -841,7 +841,7 @@ function addOrderActionListeners() {
 });
 
 // Al inicio de admin.js o en un script en admin.html
-const ADMIN_PASSWORD = "tu-contraseña-segura"; // Cambia esto
+const ADMIN_PASSWORD = "Julianny12345"; // Cambia esto
 
 function checkAdminAccess() {
     const password = prompt("Ingrese la contraseña de administrador:");
