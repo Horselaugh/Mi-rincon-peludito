@@ -779,3 +779,345 @@ h1, h2, h3, h4 {
         text-align: center;
     }
 }
+
+/* ========== MEDIA QUERIES PARA DISPOSITIVOS MÓVILES ========== */
+
+/* Para pantallas menores a 768px (tablets y móviles) */
+@media (max-width: 768px) {
+    /* Ajustes generales de contenedor */
+    .container {
+        width: 95%;
+        padding: 0 1.5rem;
+    }
+    
+    /* Navegación mejorada para móviles */
+    .navigation {
+        flex-direction: column;
+        gap: 1.5rem;
+        padding: 2rem 0;
+    }
+    
+    .logotipo, .logotipo span {
+        font-size: 3rem;
+        text-align: center;
+    }
+    
+    .nav-buttons {
+        width: 100%;
+        justify-content: center;
+        gap: 2rem;
+    }
+    
+    .nav-btn {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .nav-btn i {
+        font-size: 2.2rem;
+    }
+    
+    /* Dropdown del carrito mejorado para móviles */
+    .cart-dropdown {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        min-width: unset;
+        border-radius: 0;
+        padding: 2rem 1.5rem;
+        transform: translateY(0);
+        overflow-y: auto;
+    }
+    
+    .cart-content table {
+        font-size: 1.4rem;
+    }
+    
+    .cart-content thead th,
+    .cart-content tbody td {
+        padding: 0.8rem 0.5rem;
+        font-size: 1.3rem;
+    }
+    
+    .cart-content tbody td img {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .cart-content tbody td input[type="number"] {
+        width: 45px;
+        padding: 0.4rem;
+    }
+    
+    /* Header con imagen de fondo */
+    .header-with-image {
+        min-height: 300px;
+    }
+    
+    .header-image {
+        object-position: center;
+    }
+    
+    .form-header {
+        padding: 5rem 0 8rem 0;
+        width: 90%;
+    }
+    
+    .form-header input {
+        font-size: 1.6rem;
+        padding: 1.2rem;
+    }
+    
+    /* Banner de características */
+    .banner {
+        padding: 3rem 0;
+    }
+    
+    .banner-grid {
+        gap: 4rem;
+    }
+    
+    .banner-item {
+        flex-direction: column;
+        gap: 1.5rem;
+        text-align: center;
+    }
+    
+    .banner-item .icon-banner {
+        font-size: 2.5rem;
+    }
+    
+    /* Sección de productos */
+    .products {
+        padding: 5rem 0;
+    }
+    
+    .products h2 {
+        margin-bottom: 3rem;
+        font-size: 3.2rem;
+    }
+    
+    .products-grid {
+        gap: 1.5rem;
+    }
+    
+    .product-info {
+        padding: 1.2rem;
+    }
+    
+    .product-info h4 {
+        font-size: 1.8rem;
+    }
+    
+    .product-info .price p {
+        font-size: 1.8rem;
+    }
+    
+    /* Sección de peluquería */
+    .grooming-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
+    }
+    
+    .grooming-images-wrapper {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .grooming-image {
+        height: 250px;
+    }
+    
+    /* Modal de pago */
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+        padding: 2rem 1.5rem;
+    }
+    
+    .modal-content h2 {
+        font-size: 2.4rem;
+    }
+    
+    .close-button {
+        font-size: 2.8rem;
+        top: 0.5rem;
+        right: 1rem;
+    }
+    
+    .form-group input {
+        padding: 1rem;
+    }
+    
+    .btn-pay {
+        padding: 1.2rem;
+        font-size: 1.6rem;
+    }
+    
+    /* Tarjetas de servicio, noticias e información */
+    .service-card, .news-card, .info-card {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .service-icon, .news-icon, .info-icon {
+        font-size: 2.5rem;
+    }
+    
+    .service-price {
+        font-size: 1.8rem;
+    }
+    
+    /* Footer */
+    .footer {
+        padding: 2rem 0;
+    }
+    
+    .footer p {
+        font-size: 1.4rem;
+        line-height: 1.6;
+    }
+}
+
+/* Para pantallas menores a 480px (móviles pequeños) */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 1rem;
+    }
+    
+    .logotipo, .logotipo span {
+        font-size: 2.5rem;
+    }
+    
+    .nav-buttons {
+        gap: 1.5rem;
+    }
+    
+    .nav-btn {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .nav-btn i {
+        font-size: 2rem;
+    }
+    
+    .cart-count {
+        width: 18px;
+        height: 18px;
+        font-size: 1rem;
+    }
+    
+    .header-with-image {
+        min-height: 250px;
+    }
+    
+    .form-header {
+        padding: 3rem 0 6rem 0;
+    }
+    
+    .form-header input {
+        padding: 1rem;
+        font-size: 1.4rem;
+    }
+    
+    .form-header button {
+        padding: 0.6rem;
+    }
+    
+    .products h2 {
+        font-size: 2.8rem;
+    }
+    
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .product-info h4 {
+        font-size: 1.6rem;
+    }
+    
+    .product-info .price p {
+        font-size: 1.6rem;
+    }
+    
+    .grooming-image {
+        height: 200px;
+    }
+    
+    .modal-content {
+        padding: 1.5rem 1rem;
+    }
+    
+    .modal-content h2 {
+        font-size: 2.2rem;
+    }
+    
+    .service-card, .news-card, .info-card {
+        padding: 1.2rem;
+    }
+    
+    .service-card h3, .news-card h3, .info-card h3 {
+        font-size: 1.8rem;
+    }
+    
+    .banner-item h3 {
+        font-size: 1.6rem;
+    }
+    
+    .alert {
+        width: 90%;
+        padding: 20px 30px;
+        font-size: 1.6rem;
+    }
+}
+
+/* Para pantallas en orientación horizontal en móviles */
+@media (max-width: 768px) and (orientation: landscape) {
+    .header-with-image {
+        min-height: 350px;
+    }
+    
+    .form-header {
+        padding: 3rem 0 5rem 0;
+    }
+    
+    .cart-dropdown {
+        padding: 1.5rem;
+    }
+    
+    .modal-content {
+        margin: 5% auto;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+}
+
+/* Mejoras de accesibilidad para dispositivos táctiles */
+@media (hover: none) and (pointer: coarse) {
+    .service-card:hover, .news-card:hover, .info-card:hover,
+    .product-info .btn-add:hover,
+    .btn-service:hover,
+    .form-header button:hover,
+    .btn-pay:hover {
+        transform: none;
+    }
+    
+    .nav-btn:hover i {
+        color: #FFA500; /* Mantener color original en dispositivos táctiles */
+    }
+    
+    /* Mejorar áreas táctiles */
+    .nav-btn, .btn-service, .btn-add, .btn-pay {
+        min-height: 44px; /* Tamaño mínimo recomendado para elementos táctiles */
+    }
+    
+    .form-header input {
+        min-height: 44px;
+    }
+}
