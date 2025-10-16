@@ -489,44 +489,55 @@ function showNotification(message, type = 'info') {
     return notification;
 }
 
-// Función para actualizar la interfaz del carrito
+// Función para actualizar la interfaz del carrito - CORREGIDA
 function updateCartUI() {
     if (!contentProducts || !totalElement || !cartCountElement) {
         console.error('Elementos del carrito no encontrados');
         return;
     }
     
-    // Actualizar lista de productos en el carrito
+    // Actualizar lista de productos en el carrito - CORREGIDO para usar tabla
     contentProducts.innerHTML = '';
     
     if (cart.length === 0) {
-        contentProducts.innerHTML = '<p class="empty-cart-message">Tu carrito está vacío</p>';
+        const emptyRow = document.createElement('tr');
+        emptyRow.innerHTML = `
+            <td colspan="5" style="text-align: center; padding: 2rem; color: #f7f8f9;">
+                Tu carrito está vacío
+            </td>
+        `;
+        contentProducts.appendChild(emptyRow);
         if (totalElement) totalElement.textContent = '$0.00';
         if (cartCountElement) cartCountElement.textContent = '0';
         return;
     }
     
     cart.forEach(item => {
-        const cartItem = document.createElement('div');
-        cartItem.className = 'cart-item';
-        cartItem.innerHTML = `
-            <img src="${item.image || 'https://via.placeholder.com/50x50?text=Imagen'}" 
-                 alt="${item.name}" 
-                 onerror="this.src='https://via.placeholder.com/50x50?text=Imagen'">
-            <div class="cart-item-info">
-                <h4>${item.name}</h4>
-                <p>$${item.price.toFixed(2)} x ${item.quantity}</p>
-            </div>
-            <div class="cart-item-actions">
-                <button class="btn-quantity" onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
-                <span>${item.quantity}</span>
-                <button class="btn-quantity" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
-                <button class="btn-remove" onclick="removeFromCart(${item.id})">
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <img src="${item.image || 'https://via.placeholder.com/50x50?text=Imagen'}" 
+                     alt="${item.name}" 
+                     onerror="this.src='https://via.placeholder.com/50x50?text=Imagen'"
+                     style="width: 50px; height: 50px; object-fit: cover; border-radius: .5rem;">
+            </td>
+            <td style="color: #f7f8f9; font-size: 1.4rem;">${item.name}</td>
+            <td style="color: #f7f8f9; font-size: 1.4rem;">$${item.price.toFixed(2)}</td>
+            <td>
+                <input type="number" 
+                       value="${item.quantity}" 
+                       min="1" 
+                       onchange="updateQuantity(${item.id}, this.value)"
+                       style="width: 50px; background-color: transparent; border: 1px solid #ddd; padding: .5rem; color: #f7f8f9; border-radius: .3rem; text-align: center;">
+            </td>
+            <td>
+                <button onclick="removeFromCart(${item.id})" 
+                        style="border: none; width: 30px; height: 30px; background-color: #dc2626; color: #f7f8f9; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
                     <i class="fa-solid fa-trash"></i>
                 </button>
-            </div>
+            </td>
         `;
-        contentProducts.appendChild(cartItem);
+        contentProducts.appendChild(row);
     });
     
     // Actualizar total
@@ -555,6 +566,12 @@ function updateOrderSummary() {
     cart.forEach(item => {
         const summaryItem = document.createElement('div');
         summaryItem.className = 'order-summary-item';
+        summaryItem.style.display = 'flex';
+        summaryItem.style.justifyContent = 'space-between';
+        summaryItem.style.marginBottom = '0.5rem';
+        summaryItem.style.padding = '0.5rem';
+        summaryItem.style.backgroundColor = '#f9f9f9';
+        summaryItem.style.borderRadius = '3px';
         summaryItem.innerHTML = `
             <span>${item.name} x${item.quantity}</span>
             <span>$${(item.price * item.quantity).toFixed(2)}</span>
@@ -564,6 +581,14 @@ function updateOrderSummary() {
     
     const totalItem = document.createElement('div');
     totalItem.className = 'order-summary-total';
+    totalItem.style.display = 'flex';
+    totalItem.style.justifyContent = 'space-between';
+    totalItem.style.marginTop = '1rem';
+    totalItem.style.padding = '1rem';
+    totalItem.style.backgroundColor = '#FFA500';
+    totalItem.style.color = 'white';
+    totalItem.style.borderRadius = '3px';
+    totalItem.style.fontWeight = 'bold';
     totalItem.innerHTML = `
         <strong>Total:</strong>
         <strong>$${calculateTotal().toFixed(2)}</strong>
@@ -675,7 +700,7 @@ function updateQuantity(productId, newQuantity) {
     if (newQuantity <= 0) {
         removeFromCart(productId);
     } else {
-        item.quantity = newQuantity;
+        item.quantity = parseInt(newQuantity);
         updateCartUI();
         saveCartToStorage();
     }
@@ -744,3 +769,8 @@ function displaySearchResults(products) {
         displayProducts(products, 'searchResultsGrid');
     }
 }
+
+// Hacer funciones disponibles globalmente
+window.addToCart = addToCart;
+window.updateQuantity = updateQuantity;
+window.removeFromCart = removeFromCart;
