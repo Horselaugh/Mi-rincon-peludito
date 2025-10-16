@@ -85,7 +85,6 @@ function initializeApp() {
     loadProducts();
 }
 
-// Función para cargar productos desde el backend
 async function loadProducts() {
     try {
         console.log('Cargando productos...');
@@ -120,6 +119,16 @@ async function loadProducts() {
         displayProducts(accesorios, 'accesorios-container');
         allProducts = allProducts.concat(accesorios.map(p => ({ ...p, category: 'accesorio' })));
 
+        // Cargar snacks (NUEVA CATEGORÍA)
+        const responseSnacks = await fetch('/api/snacks');
+        if (!responseSnacks.ok) {
+            throw new Error(`Error HTTP al cargar snacks: ${responseSnacks.status}`);
+        }
+        const snacks = await responseSnacks.json();
+        console.log('Snacks:', snacks);
+        displayProducts(snacks, 'snacks-container');
+        allProducts = allProducts.concat(snacks.map(p => ({ ...p, category: 'snack' })));
+
         // Si no hay productos en ninguna categoría, mostrar un mensaje general
         if (allProducts.length === 0) {
             document.querySelectorAll('.products-grid').forEach(container => {
@@ -127,7 +136,7 @@ async function loadProducts() {
                 if (loadingElement) {
                     loadingElement.remove();
                 }
-                if (container.innerHTML.trim() === '') { // Si el contenedor está vacío después de intentar cargar
+                if (container.innerHTML.trim() === '') {
                     container.innerHTML = '<div class="no-products" style="text-align: center; width: 100%;">No hay productos disponibles en esta categoría.</div>';
                 }
             });
@@ -137,7 +146,7 @@ async function loadProducts() {
         console.error('Error al cargar productos:', error);
         document.querySelectorAll('.loading').forEach(el => {
             el.textContent = `Error al cargar los productos: ${error.message}. Intenta nuevamente más tarde.`;
-            el.style.color = '#f44336'; // Color de error
+            el.style.color = '#f44336';
         });
     }
 }

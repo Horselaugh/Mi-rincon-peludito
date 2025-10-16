@@ -165,6 +165,27 @@ app.get('/api/accesorios', (req, res) => {
     }
 });
 
+// Ruta para snacks
+app.get('/api/snacks', (req, res) => {
+    try {
+        const products = allStatement(`
+            SELECT 
+                ID_PRODUCTO as id,
+                NOMBRE_PRODUCTO as nombre,
+                DESCRIPCION_PRODUCTO as descripcion,
+                PRECIO_PRODUCTO as precio,
+                IMAGEN_URL as imagen
+            FROM Producto 
+            WHERE LOWER(CATEGORIA) = 'snack'
+            ORDER BY ID_PRODUCTO
+        `);
+        res.json(products);
+    } catch (error) {
+        console.error('Error en la API /api/snacks:', error);
+        res.status(500).json({ error: 'Error al obtener snacks' });
+    }
+});
+
 // Ruta para búsqueda de productos
 app.get('/api/products/search', (req, res) => {
     try {
