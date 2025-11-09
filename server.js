@@ -1,6 +1,5 @@
 const express = require('express');
-// const sqlite3 = require('sqlite3').verbose(); // Remove or comment out this line
-const Database = require('better-sqlite3'); // Import better-sqlite3
+const { Pool } = require('pg'); // Importamos Pool para PostgreSQL
 const nodemailer = require('nodemailer');
 const path = require('path');
 const cors = require('cors');
@@ -14,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// Agrega estas rutas para las páginas principales
+// Rutas para las páginas principales (se mantienen igual)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -23,59 +22,81 @@ app.get('/admin.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-// Configuración de la base de datos con better-sqlite3
-let db;
-try {
-    db = new Database('./database.db', { verbose: console.log }); // Open database synchronously, verbose for logging
-    console.log('Conectado a la base de datos SQLite con better-sqlite3.');
+// ******************************************************
+// ** Configuración de la base de datos PostgreSQL/Supabase **
+// ******************************************************
+const DATABASE_URL = process.env.DATABASE_URL;
 
-    // Create tables if they don't exist
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS Producto (
-            ID_PRODUCTO INTEGER PRIMARY KEY AUTOINCREMENT,
-            NOMBRE_PRODUCTO TEXT NOT NULL,
-            DESCRIPCION_PRODUCTO TEXT,
-            PRECIO_PRODUCTO REAL NOT NULL,
-            PRECIO_ANTERIOR REAL,
-            IMAGEN_URL TEXT,
-            ESTRELLAS REAL DEFAULT 0,
-            STOCK_PRODUCTO INTEGER NOT NULL DEFAULT 0,
-            CATEGORIA TEXT
-        );
-        CREATE TABLE IF NOT EXISTS Pedido (
-            ID_PEDIDO INTEGER PRIMARY KEY AUTOINCREMENT,
-            ID_PRODUCTO INTEGER,
-            NOMBRE_SERVICIO TEXT,
-            CANTIDAD_PEDIDO INTEGER NOT NULL,
-            PRECIO_UNITARIO REAL NOT NULL,
-            FECHA_PEDIDO DATETIME DEFAULT CURRENT_TIMESTAMP,
-            NOMBRE_CLIENTE TEXT NOT NULL,
-            CORREO_CLIENTE TEXT NOT NULL,
-            TELEFONO_CLIENTE TEXT NOT NULL,
-            METODO_PAGO TEXT NOT NULL,
-            NOTAS_ADICIONALES TEXT,
-            ESTADO TEXT DEFAULT 'pendiente',
-            FOREIGN KEY (ID_PRODUCTO) REFERENCES Producto (ID_PRODUCTO)
-        );
-    `);
-    console.log('Tablas Producto y Pedido verificadas/creadas.');
-
-    // Check and add NOMBRE_SERVICIO column if it doesn't exist
-    const columns = db.prepare("PRAGMA table_info(Pedido)").all();
-    const hasServiceName = columns.some(col => col.name === 'NOMBRE_SERVICIO');
-    if (!hasServiceName) {
-        console.log('Agregando columna NOMBRE_SERVICIO a la tabla Pedido...');
-        db.exec("ALTER TABLE Pedido ADD COLUMN NOMBRE_SERVICIO TEXT");
-        console.log('Columna NOMBRE_SERVICIO agregada correctamente.');
-    }
-
-} catch (err) {
-    console.error('Error al conectar o inicializar la base de datos:', err.message);
-    process.exit(1); // Exit if database connection fails
+if (!DATABASE_URL) {
+    console.error("FATAL: La variable de entorno DATABASE_URL no está configurada.");
+    process.exit(1);
 }
 
+// Crear un pool de conexiones para PostgreSQL
+const pool = new Pool({
+    connectionString: DATABASE_URL,
+    // Asegurarse de usar SSL, requerido por Supabase
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
 
-// Configuración del transporter de nodemailer
+// Función para inicializar las tablas de forma asíncrona
+async function initializeDatabase() {
+    let client;
+    try {
+        client = await pool.connect();
+        console.log('Conectado exitosamente a PostgreSQL (Supabase).');
+
+        // Script de inicialización de tablas (adaptado a PostgreSQL)
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS Producto (
+                ID_PRODUCTO SERIAL PRIMARY KEY,
+                NOMBRE_PRODUCTO VARCHAR(255) NOT NULL,
+                DESCRIPCION_PRODUCTO TEXT,
+                PRECIO_PRODUCTO NUMERIC(10, 2) NOT NULL,
+                PRECIO_ANTERIOR NUMERIC(10, 2),
+                IMAGEN_URL TEXT,
+                ESTRELLAS NUMERIC(2, 1) DEFAULT 0,
+                STOCK_PRODUCTO INTEGER NOT NULL DEFAULT 0,
+                CATEGORIA VARCHAR(100)
+            );
+            CREATE TABLE IF NOT EXISTS Pedido (
+                ID_PEDIDO SERIAL PRIMARY KEY,
+                ID_PRODUCTO INTEGER,
+                NOMBRE_SERVICIO VARCHAR(255),
+                CANTIDAD_PEDIDO INTEGER NOT NULL,
+                PRECIO_UNITARIO NUMERIC(10, 2) NOT NULL,
+                FECHA_PEDIDO TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                NOMBRE_CLIENTE VARCHAR(255) NOT NULL,
+                CORREO_CLIENTE VARCHAR(255) NOT NULL,
+                TELEFONO_CLIENTE VARCHAR(50) NOT NULL,
+                METODO_PAGO VARCHAR(50) NOT NULL,
+                NOTAS_ADICIONALES TEXT,
+                ESTADO VARCHAR(50) DEFAULT 'pendiente',
+                FOREIGN KEY (ID_PRODUCTO) REFERENCES Producto (ID_PRODUCTO)
+            );
+        `);
+        console.log('Tablas Producto y Pedido verificadas/creadas en PostgreSQL.');
+
+        // La verificación de columna se hace en la migración, aquí solo se intenta agregar si no existe
+        // NOTA: ALTER TABLE IF NOT EXISTS no está soportado universalmente, por lo que este check simple se omite.
+        // Si necesitas asegurar la columna, hazlo manualmente en Supabase o con una lógica más compleja de Postgres.
+
+    } catch (err) {
+        console.error('Error al conectar o inicializar la base de datos PostgreSQL:', err.stack);
+        process.exit(1); // Salir si la conexión o inicialización fallan
+    } finally {
+        if (client) {
+            client.release(); // Liberar el cliente al pool
+        }
+    }
+}
+
+// Ejecutar la inicialización
+initializeDatabase();
+
+// Configuración del transporter de nodemailer (se mantiene igual)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -84,28 +105,40 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// ================== NUEVAS RUTAS ESPECÍFICAS PARA EL FRONTEND ==================
+// **********************************************
+// ** Funciones de utilidad para PostgreSQL (ASÍNCRONAS) **
+// **********************************************
 
-// Helper function to prepare and run a statement
-function runStatement(sql, params = []) {
-    return db.prepare(sql).run(params);
+// Función genérica para ejecutar INSERT/UPDATE/DELETE/SELECT (todas)
+async function runQuery(sql, params = []) {
+    try {
+        // En PostgreSQL, el pool.query maneja la conexión y liberación automáticamente
+        const result = await pool.query(sql, params);
+        return result;
+    } catch (error) {
+        console.error('Error en runQuery:', error.stack);
+        throw error;
+    }
 }
 
-// Helper function to prepare and get a single row
-function getStatement(sql, params = []) {
-    return db.prepare(sql).get(params);
+// Función genérica para obtener un único registro (SELECT)
+async function getQuery(sql, params = []) {
+    const result = await runQuery(sql, params);
+    return result.rows[0]; // Retorna el primer resultado o undefined
 }
 
-// Helper function to prepare and get all rows
-function allStatement(sql, params = []) {
-    return db.prepare(sql).all(params);
+// Función genérica para obtener múltiples registros (SELECT)
+async function allQuery(sql, params = []) {
+    const result = await runQuery(sql, params);
+    return result.rows; // Retorna todos los resultados
 }
 
+// ================== RUTAS ESPECÍFICAS PARA EL FRONTEND (TODAS ASÍNCRONAS) ==================
 
 // Ruta para juguetes caninos
-app.get('/api/juguetes-caninos', (req, res) => {
+app.get('/api/juguetes-caninos', async (req, res) => {
     try {
-        const products = allStatement(`
+        const products = await allQuery(`
             SELECT 
                 ID_PRODUCTO as id,
                 NOMBRE_PRODUCTO as nombre,
@@ -124,9 +157,9 @@ app.get('/api/juguetes-caninos', (req, res) => {
 });
 
 // Ruta para juguetes gatunos
-app.get('/api/juguetes-gatunos', (req, res) => {
+app.get('/api/juguetes-gatunos', async (req, res) => {
     try {
-        const products = allStatement(`
+        const products = await allQuery(`
             SELECT 
                 ID_PRODUCTO as id,
                 NOMBRE_PRODUCTO as nombre,
@@ -145,9 +178,9 @@ app.get('/api/juguetes-gatunos', (req, res) => {
 });
 
 // Ruta para accesorios
-app.get('/api/accesorios', (req, res) => {
+app.get('/api/accesorios', async (req, res) => {
     try {
-        const products = allStatement(`
+        const products = await allQuery(`
             SELECT 
                 ID_PRODUCTO as id,
                 NOMBRE_PRODUCTO as nombre,
@@ -166,9 +199,9 @@ app.get('/api/accesorios', (req, res) => {
 });
 
 // Ruta para snacks
-app.get('/api/snacks', (req, res) => {
+app.get('/api/snacks', async (req, res) => {
     try {
-        const products = allStatement(`
+        const products = await allQuery(`
             SELECT 
                 ID_PRODUCTO as id,
                 NOMBRE_PRODUCTO as nombre,
@@ -187,10 +220,10 @@ app.get('/api/snacks', (req, res) => {
 });
 
 // Ruta para búsqueda de productos
-app.get('/api/products/search', (req, res) => {
+app.get('/api/products/search', async (req, res) => {
     try {
         const searchTerm = req.query.q ? `%${req.query.q.toLowerCase()}%` : '';
-        const products = allStatement(`
+        const products = await allQuery(`
             SELECT 
                 ID_PRODUCTO as id,
                 NOMBRE_PRODUCTO as nombre,
@@ -198,7 +231,7 @@ app.get('/api/products/search', (req, res) => {
                 PRECIO_PRODUCTO as precio,
                 IMAGEN_URL as imagen
             FROM Producto 
-            WHERE LOWER(NOMBRE_PRODUCTO) LIKE ? OR LOWER(DESCRIPCION_PRODUCTO) LIKE ?
+            WHERE LOWER(NOMBRE_PRODUCTO) LIKE $1 OR LOWER(DESCRIPCION_PRODUCTO) LIKE $2
             ORDER BY ID_PRODUCTO
         `, [searchTerm, searchTerm]);
         res.json(products);
@@ -211,9 +244,9 @@ app.get('/api/products/search', (req, res) => {
 // ================== RUTAS PARA LA API DE PRODUCTOS ==================
 
 // Obtener todos los productos
-app.get('/api/products', (req, res) => {
+app.get('/api/products', async (req, res) => {
     try {
-        const products = allStatement(`
+        const products = await allQuery(`
             SELECT 
                 ID_PRODUCTO as id,
                 NOMBRE_PRODUCTO as name,
@@ -235,10 +268,10 @@ app.get('/api/products', (req, res) => {
 });
 
 // Obtener un producto por ID
-app.get('/api/products/:id', (req, res) => {
+app.get('/api/products/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const product = getStatement(`
+        const product = await getQuery(`
             SELECT 
                 ID_PRODUCTO as id,
                 NOMBRE_PRODUCTO as name,
@@ -250,7 +283,7 @@ app.get('/api/products/:id', (req, res) => {
                 STOCK_PRODUCTO as quantity,
                 CATEGORIA as category
             FROM Producto 
-            WHERE ID_PRODUCTO = ?
+            WHERE ID_PRODUCTO = $1
         `, [id]);
         
         if (!product) {
@@ -265,7 +298,7 @@ app.get('/api/products/:id', (req, res) => {
 });
 
 // Crear un nuevo producto
-app.post('/api/products', (req, res) => {
+app.post('/api/products', async (req, res) => {
     try {
         const { 
             name, 
@@ -278,26 +311,25 @@ app.post('/api/products', (req, res) => {
             category 
         } = req.body;
         
-        // Validar datos requeridos
         if (!name || !currentPrice || !quantity || !category) {
             return res.status(400).json({ error: 'Faltan campos obligatorios' });
         }
         
-        // Validar tipos de datos
         if (isNaN(currentPrice) || isNaN(quantity)) {
             return res.status(400).json({ error: 'Precio y cantidad deben ser números válidos' });
         }
         
-        const result = runStatement(
+        const result = await runQuery(
             `INSERT INTO Producto 
              (NOMBRE_PRODUCTO, DESCRIPCION_PRODUCTO, PRECIO_PRODUCTO, PRECIO_ANTERIOR, IMAGEN_URL, ESTRELLAS, STOCK_PRODUCTO, CATEGORIA) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING ID_PRODUCTO`,
             [name, description, currentPrice, oldPrice || null, image || '', stars || 0, quantity, category]
         );
         
+        // PostgreSQL devuelve el ID en rows[0]
         res.status(201).json({ 
             message: 'Producto creado correctamente',
-            id: result.lastInsertRowid // better-sqlite3 uses lastInsertRowid
+            id: result.rows[0].id_producto 
         });
     } catch (error) {
         console.error('Error en la API /api/products (POST):', error);
@@ -306,7 +338,7 @@ app.post('/api/products', (req, res) => {
 });
 
 // Actualizar un producto
-app.put('/api/products/:id', (req, res) => {
+app.put('/api/products/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { 
@@ -320,9 +352,8 @@ app.put('/api/products/:id', (req, res) => {
             category 
         } = req.body;
         
-        // Verificar que el producto existe
-        const existingProduct = getStatement(
-            "SELECT ID_PRODUCTO FROM Producto WHERE ID_PRODUCTO = ?", 
+        const existingProduct = await getQuery(
+            "SELECT ID_PRODUCTO FROM Producto WHERE ID_PRODUCTO = $1", 
             [id]
         );
         
@@ -330,23 +361,20 @@ app.put('/api/products/:id', (req, res) => {
             return res.status(404).json({ error: 'Producto no encontrado' });
         }
         
-        // Validar datos requeridos
         if (!name || !currentPrice || !quantity || !category) {
             return res.status(400).json({ error: 'Faltan campos obligatorios' });
         }
         
-        // Validar tipos de datos
         if (isNaN(currentPrice) || isNaN(quantity)) {
             return res.status(400).json({ error: 'Precio y cantidad deben ser números válidos' });
         }
         
-        // Actualizar el producto
-        runStatement(
+        await runQuery(
             `UPDATE Producto 
-             SET NOMBRE_PRODUCTO = ?, DESCRIPCION_PRODUCTO = ?, PRECIO_PRODUCTO = ?, 
-                 PRECIO_ANTERIOR = ?, IMAGEN_URL = ?, ESTRELLAS = ?, 
-                 STOCK_PRODUCTO = ?, CATEGORIA = ?
-             WHERE ID_PRODUCTO = ?`,
+             SET NOMBRE_PRODUCTO = $1, DESCRIPCION_PRODUCTO = $2, PRECIO_PRODUCTO = $3, 
+                 PRECIO_ANTERIOR = $4, IMAGEN_URL = $5, ESTRELLAS = $6, 
+                 STOCK_PRODUCTO = $7, CATEGORIA = $8
+             WHERE ID_PRODUCTO = $9`,
             [
                 name, 
                 description, 
@@ -368,13 +396,12 @@ app.put('/api/products/:id', (req, res) => {
 });
 
 // Eliminar un producto
-app.delete('/api/products/:id', (req, res) => {
+app.delete('/api/products/:id', async (req, res) => {
     try {
         const { id } = req.params;
         
-        // Verificar que el producto existe
-        const existingProduct = getStatement(
-            "SELECT ID_PRODUCTO FROM Producto WHERE ID_PRODUCTO = ?", 
+        const existingProduct = await getQuery(
+            "SELECT ID_PRODUCTO FROM Producto WHERE ID_PRODUCTO = $1", 
             [id]
         );
         
@@ -382,9 +409,8 @@ app.delete('/api/products/:id', (req, res) => {
             return res.status(404).json({ error: 'Producto no encontrado' });
         }
         
-        // Verificar si el producto tiene pedidos asociados
-        const orders = allStatement(
-            "SELECT ID_PEDIDO FROM Pedido WHERE ID_PRODUCTO = ?", 
+        const orders = await allQuery(
+            "SELECT ID_PEDIDO FROM Pedido WHERE ID_PRODUCTO = $1", 
             [id]
         );
         
@@ -394,7 +420,7 @@ app.delete('/api/products/:id', (req, res) => {
             });
         }
         
-        runStatement("DELETE FROM Producto WHERE ID_PRODUCTO = ?", [id]);
+        await runQuery("DELETE FROM Producto WHERE ID_PRODUCTO = $1", [id]);
         
         res.json({ message: 'Producto eliminado correctamente' });
     } catch (error) {
@@ -408,54 +434,55 @@ app.delete('/api/products/:id', (req, res) => {
 // Ruta para procesar pedidos y actualizar inventario
 app.post('/api/process-order', async (req, res) => {
     const { customer, items, total, notes } = req.body;
-
-    // Validaciones básicas de los datos recibidos
+    
     if (!customer || !customer.name || !customer.email || !customer.phone || !items || !Array.isArray(items) || items.length === 0 || total === undefined) {
         return res.status(400).json({ error: 'Faltan datos obligatorios del pedido o del cliente.' });
     }
 
+    let client; // Cliente de conexión para la transacción
     try {
-        // Use better-sqlite3's transaction API
-        const processTransaction = db.transaction(() => {
-            // 1. Verificar stock para productos (los servicios no tienen stock en la tabla Producto)
-            for (const item of items) {
-                if (!item.isService) { // Solo verificar stock para productos
-                    const product = getStatement("SELECT STOCK_PRODUCTO, NOMBRE_PRODUCTO FROM Producto WHERE ID_PRODUCTO = ?", [item.id]);
+        client = await pool.connect();
+        await client.query('BEGIN'); // Iniciar la transacción
 
-                    if (!product) {
-                        throw new Error(`Producto con ID ${item.id} no encontrado.`);
-                    }
+        // 1. Verificar stock para productos
+        for (const item of items) {
+            if (!item.isService) { 
+                const productResult = await client.query("SELECT STOCK_PRODUCTO, NOMBRE_PRODUCTO FROM Producto WHERE ID_PRODUCTO = $1", [item.id]);
+                const product = productResult.rows[0];
 
-                    if (product.STOCK_PRODUCTO < item.quantity) {
-                        throw new Error(`No hay suficiente stock de ${product.NOMBRE_PRODUCTO}. Solo quedan ${product.STOCK_PRODUCTO} unidades.`);
-                    }
+                if (!product) {
+                    throw new Error(`Producto con ID ${item.id} no encontrado.`);
+                }
+
+                if (product.stock_producto < item.quantity) {
+                    throw new Error(`No hay suficiente stock de ${product.nombre_producto}. Solo quedan ${product.stock_producto} unidades.`);
                 }
             }
+        }
 
-            // 2. Actualizar stock y registrar pedidos
-            for (const item of items) {
-                if (!item.isService) {
-                    runStatement("UPDATE Producto SET STOCK_PRODUCTO = STOCK_PRODUCTO - ? WHERE ID_PRODUCTO = ?", [item.quantity, item.id]);
-                }
-                
-                runStatement(
-                    "INSERT INTO Pedido (ID_PRODUCTO, NOMBRE_SERVICIO, CANTIDAD_PEDIDO, PRECIO_UNITARIO, NOMBRE_CLIENTE, CORREO_CLIENTE, TELEFONO_CLIENTE, METODO_PAGO, NOTAS_ADICIONALES) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    [
-                        item.isService ? null : item.id,
-                        item.isService ? item.name : null,
-                        item.quantity,
-                        item.price,
-                        customer.name,
-                        customer.email,
-                        customer.phone,
-                        customer.paymentMethod,
-                        notes || ''
-                    ]
-                );
+        // 2. Actualizar stock y registrar pedidos
+        for (const item of items) {
+            if (!item.isService) {
+                await client.query("UPDATE Producto SET STOCK_PRODUCTO = STOCK_PRODUCTO - $1 WHERE ID_PRODUCTO = $2", [item.quantity, item.id]);
             }
-        });
+            
+            await client.query(
+                "INSERT INTO Pedido (ID_PRODUCTO, NOMBRE_SERVICIO, CANTIDAD_PEDIDO, PRECIO_UNITARIO, NOMBRE_CLIENTE, CORREO_CLIENTE, TELEFONO_CLIENTE, METODO_PAGO, NOTAS_ADICIONALES) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+                [
+                    item.isService ? null : item.id,
+                    item.isService ? item.name : null,
+                    item.quantity,
+                    item.price,
+                    customer.name,
+                    customer.email,
+                    customer.phone,
+                    customer.paymentMethod,
+                    notes || ''
+                ]
+            );
+        }
 
-        processTransaction(); // Execute the transaction
+        await client.query('COMMIT'); // Confirmar la transacción
 
         // Enviar correo de confirmación
         try {
@@ -483,19 +510,25 @@ app.post('/api/process-order', async (req, res) => {
             console.log('Correo de confirmación enviado a:', customer.email);
         } catch (emailError) {
             console.error('Error al enviar correo de confirmación:', emailError);
-            // No falla el pedido si hay error en el correo, solo se registra
         }
 
         res.json({ success: true, message: 'Pedido procesado y stock actualizado correctamente.' });
 
     } catch (error) {
+        if (client) {
+            await client.query('ROLLBACK'); // Revertir la transacción si algo falla
+        }
         console.error('Error al procesar el pedido:', error);
         res.status(500).json({ success: false, message: `Error interno del servidor al procesar el pedido: ${error.message}` });
+    } finally {
+        if (client) {
+            client.release();
+        }
     }
 });
 
 // Obtener todos los pedidos
-app.get('/api/orders', (req, res) => {
+app.get('/api/orders', async (req, res) => {
     try {
         const { status } = req.query;
         let query = `
@@ -521,13 +554,13 @@ app.get('/api/orders', (req, res) => {
         let params = [];
         
         if (status && status !== 'all') {
-            query += " WHERE p.ESTADO = ?";
+            query += " WHERE p.ESTADO = $1";
             params.push(status);
         }
         
         query += " ORDER BY p.FECHA_PEDIDO DESC";
         
-        const orders = allStatement(query, params);
+        const orders = await allQuery(query, params);
         res.json(orders);
     } catch (error) {
         console.error('Error en la API /api/orders:', error);
@@ -536,10 +569,10 @@ app.get('/api/orders', (req, res) => {
 });
 
 // Obtener un pedido por ID
-app.get('/api/orders/:id', (req, res) => {
+app.get('/api/orders/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const order = getStatement(`
+        const order = await getQuery(`
             SELECT 
                 p.ID_PEDIDO as id,
                 p.ID_PRODUCTO as productId,
@@ -557,7 +590,7 @@ app.get('/api/orders/:id', (req, res) => {
                 prod.IMAGEN_URL as productImage
             FROM Pedido p
             LEFT JOIN Producto prod ON p.ID_PRODUCTO = prod.ID_PRODUCTO
-            WHERE p.ID_PEDIDO = ?
+            WHERE p.ID_PEDIDO = $1
         `, [id]);
         
         if (!order) {
@@ -572,7 +605,7 @@ app.get('/api/orders/:id', (req, res) => {
 });
 
 // Actualizar un pedido (incluyendo todos los campos)
-app.put('/api/orders/:id', (req, res) => {
+app.put('/api/orders/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { 
@@ -588,9 +621,8 @@ app.put('/api/orders/:id', (req, res) => {
             status 
         } = req.body;
         
-        // Verificar que el pedido existe
-        const existingOrder = getStatement(
-            "SELECT ID_PEDIDO FROM Pedido WHERE ID_PEDIDO = ?", 
+        const existingOrder = await getQuery(
+            "SELECT ID_PEDIDO FROM Pedido WHERE ID_PEDIDO = $1", 
             [id]
         );
         
@@ -598,13 +630,12 @@ app.put('/api/orders/:id', (req, res) => {
             return res.status(404).json({ error: 'Pedido no encontrado' });
         }
         
-        // Actualizar el pedido
-        runStatement(
+        await runQuery(
             `UPDATE Pedido 
-             SET ID_PRODUCTO = ?, NOMBRE_SERVICIO = ?, CANTIDAD_PEDIDO = ?, 
-                 PRECIO_UNITARIO = ?, NOMBRE_CLIENTE = ?, CORREO_CLIENTE = ?, 
-                 TELEFONO_CLIENTE = ?, METODO_PAGO = ?, NOTAS_ADICIONALES = ?, ESTADO = ?
-             WHERE ID_PEDIDO = ?`,
+             SET ID_PRODUCTO = $1, NOMBRE_SERVICIO = $2, CANTIDAD_PEDIDO = $3, 
+                 PRECIO_UNITARIO = $4, NOMBRE_CLIENTE = $5, CORREO_CLIENTE = $6, 
+                 TELEFONO_CLIENTE = $7, METODO_PAGO = $8, NOTAS_ADICIONALES = $9, ESTADO = $10
+             WHERE ID_PEDIDO = $11`,
             [
                 productId, 
                 serviceName, 
@@ -633,9 +664,8 @@ app.put('/api/orders/:id/status', async (req, res) => {
         const { id } = req.params;
         const { status } = req.body;
         
-        // Verificar que el pedido existe
-        const existingOrder = getStatement(
-            "SELECT ID_PEDIDO, CORREO_CLIENTE, NOMBRE_CLIENTE FROM Pedido WHERE ID_PEDIDO = ?", 
+        const existingOrder = await getQuery(
+            "SELECT ID_PEDIDO, CORREO_CLIENTE, NOMBRE_CLIENTE FROM Pedido WHERE ID_PEDIDO = $1", 
             [id]
         );
         
@@ -643,19 +673,16 @@ app.put('/api/orders/:id/status', async (req, res) => {
             return res.status(404).json({ error: 'Pedido no encontrado' });
         }
         
-        // Validar el estado
         const validStatuses = ['pendiente', 'pagado', 'en camino', 'entregado', 'cancelado'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ error: 'Estado no válido' });
         }
         
-        // Actualizar el estado
-        runStatement(
-            "UPDATE Pedido SET ESTADO = ? WHERE ID_PEDIDO = ?",
+        await runQuery(
+            "UPDATE Pedido SET ESTADO = $1 WHERE ID_PEDIDO = $2",
             [status, id]
         );
         
-        // Enviar correo de notificación si el estado cambia
         if (status !== 'pendiente') {
             try {
                 const statusMessages = {
@@ -667,10 +694,10 @@ app.put('/api/orders/:id/status', async (req, res) => {
                 
                 const mailOptions = {
                     from: process.env.EMAIL_USER,
-                    to: existingOrder.CORREO_CLIENTE,
+                    to: existingOrder.correo_cliente, // Los nombres de columnas son minúsculas en el objeto devuelto por pg
                     subject: `Actualización de tu pedido #${id} - Patitas Contentas`,
                     html: `
-                        <h2>Hola ${existingOrder.NOMBRE_CLIENTE},</h2>
+                        <h2>Hola ${existingOrder.nombre_cliente},</h2>
                         <p>El estado de tu pedido #${id} ${statusMessages[status]}</p>
                         <br>
                         <p>¡Gracias por confiar en Patitas Contentas!</p>
@@ -678,10 +705,9 @@ app.put('/api/orders/:id/status', async (req, res) => {
                 };
                 
                 await transporter.sendMail(mailOptions);
-                console.log('Correo de actualización de estado enviado a:', existingOrder.CORREO_CLIENTE);
+                console.log('Correo de actualización de estado enviado a:', existingOrder.correo_cliente);
             } catch (emailError) {
                 console.error('Error al enviar correo de actualización:', emailError);
-                // No falla la actualización si hay error en el correo
             }
         }
         
@@ -693,13 +719,12 @@ app.put('/api/orders/:id/status', async (req, res) => {
 });
 
 // Eliminar un pedido
-app.delete('/api/orders/:id', (req, res) => {
+app.delete('/api/orders/:id', async (req, res) => {
     try {
         const { id } = req.params;
         
-        // Verificar que el pedido existe
-        const existingOrder = getStatement(
-            "SELECT ID_PEDIDO FROM Pedido WHERE ID_PEDIDO = ?", 
+        const existingOrder = await getQuery(
+            "SELECT ID_PEDIDO FROM Pedido WHERE ID_PEDIDO = $1", 
             [id]
         );
         
@@ -707,7 +732,7 @@ app.delete('/api/orders/:id', (req, res) => {
             return res.status(404).json({ error: 'Pedido no encontrado' });
         }
         
-        runStatement("DELETE FROM Pedido WHERE ID_PEDIDO = ?", [id]);
+        await runQuery("DELETE FROM Pedido WHERE ID_PEDIDO = $1", [id]);
         
         res.json({ message: 'Pedido eliminado correctamente' });
     } catch (error) {
