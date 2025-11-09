@@ -35,7 +35,8 @@ if (!DATABASE_URL) {
 // Crear un pool de conexiones para PostgreSQL
 const pool = new Pool({
     connectionString: DATABASE_URL,
-    // Asegurarse de usar SSL, requerido por Supabase
+    // ¡CORRECCIÓN CRÍTICA!: Se usa ":" para la propiedad y "," para separar.
+    family: 4, 
     ssl: {
         rejectUnauthorized: false
     }
